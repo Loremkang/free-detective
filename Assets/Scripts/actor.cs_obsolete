@@ -1,0 +1,157 @@
+using System;
+using UnityEngine;
+using System.Collections;
+
+public class Action {
+    public enum ActionType : int {
+        Back,
+        // toInspection,
+        // toDisplay,
+        toInference
+    }
+}
+
+public enum State : int {
+    rootState,
+    inference
+}
+
+public static class Actor {
+    public static State state = new State();
+
+    public static void prePrint() {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        // Debug.Log("\n\n");
+        switch (state) {
+            case State.rootState : {
+                Printer.printCurStatus();
+                // Debug.Log("你可以选择：");
+                // Debug.Log("[D] 调查物品");
+                // Debug.Log("[T] 推理");
+                // Debug.Log("[C] 查看已有证据与推论");
+                // Debug.Log("[B] 后退");
+                Console.Write("选择：");
+                break;
+            }
+            case State.inference : {
+                // Printer.printAllObject();
+                Console.Write("将用于推理的物品编号用空格分割输入，或输入 B 退出推理模式：");
+                break;
+            }
+            default : {
+                // Debug.Log("未知状态，正在退回到初始状态……");
+                state = State.rootState;
+                break;
+            }
+        }
+        Console.ForegroundColor = ConsoleColor.White;
+    }
+
+    public static void stateMachine() {
+        switch (state) {
+            case State.rootState : {
+                string cmd = Console.ReadLine();
+                string strtmp;
+                switch (cmd) {
+                    case "D" :
+                    case "d" :
+                        ArrayList subItems = Printer.printObjectsHere();
+                        foreach(Item item in subItems) {
+                            Data.obtainedItem.Add(item);
+                        }
+                        if (subItems.Count != 0) {
+                            Console.Write("输入数字以移动，输入 B 取消移动：");
+                            strtmp = Console.ReadLine();
+                            if (strtmp != "B") {
+                                try {
+                                    int index = Convert.ToInt32(strtmp);
+                                    if (((Item)subItems[index]).subItems.Count > 0) {
+                                        Data.curPos = (Item)subItems[index];
+                                    } else {
+                                        // Debug.Log(((Item)subItems[index]).name + "没有子物品");
+                                    }
+                                } catch (Exception e) {
+                                    Debug.Log(e);
+                                }
+                                
+                            }
+                        }
+                        break;
+                    case "T" :
+                    case "t" :
+                        // Debug.Log("切换到推理模式");
+                        Printer.printAllObject();
+                        state = State.inference;
+                        break;
+                    case "C" :
+                    case "c" :
+                        Printer.printAllObject();
+                        Console.Write("输入数字以快速移动到对应位置，输入 B 取消移动：");
+                        strtmp = Console.ReadLine();
+                        if (strtmp != "B") {
+                            try {
+                                int index = Convert.ToInt32(strtmp);
+                                Data.curPos = (Item)Data.obtainedItem[index];
+                            } catch (Exception e) {
+                                Debug.Log(e);
+                            }
+                        }
+                        break;
+                    case "B" :
+                    case "b" :
+                        if (Data.curPos.fatherItem == null) {
+                            // Debug.Log("已退到关卡入口");
+                        } else {
+                            Data.curPos = Data.curPos.fatherItem;
+                        }
+                        break;
+                    default :
+                        // Debug.Log("未知命令，请重新输入");
+                        break;
+                }
+                break;
+            }
+            case State.inference : {
+                string cmd = Console.ReadLine();
+                if (cmd.ToUpper() == "B") {
+                    // Debug.Log("切换到侦查模式");
+                    state = State.rootState;
+                } else {
+                    string[] cmdList = cmd.Split(' ');
+                    ArrayList objs = new ArrayList();
+                    for (int i = 0; i < cmdList.Length; i ++) {
+                        int index;
+                        bool result = int.TryParse(cmdList[i], out index);
+                        objs.Add(((Item)Data.obtainedItem[index]).name);
+                        // objs[i] = ((Item)Data.obtainedItem[i]).name;
+                    }
+                    // // Debug.Log(objs.ToString());
+                    Boolean getSomething = false;
+                    foreach (Item item in Data.globalItemMap.Values) {
+                        if (item.inferenceThis(objs)) {
+                            // Debug.Log("获得线索：");
+                            Console.Write("\t");
+                            Printer.printObject(item);
+                            Data.obtainedItem.Add(item);
+                            Data.hidden.Remove(item);
+                            item.substituteOthers();
+                            getSomething = true;
+                        }
+                    }
+                    if (!getSomething) {
+                        // Debug.Log("未获得任何线索");
+                    }
+                }
+                break;
+            }
+            default : {
+                // Debug.Log("未知状态，正在退回到初始状态……");
+                state = State.rootState;
+                break;
+            }
+        }
+    }
+    // public static void take(Action action) {
+
+    // }
+}

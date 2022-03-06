@@ -1,0 +1,11 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public enum ObjectType {
+    Scene, // Scene, Mother Object
+    SceneTrigger, // Scene in another Scene
+    Item,
+    Testimony,
+    Inference
+};

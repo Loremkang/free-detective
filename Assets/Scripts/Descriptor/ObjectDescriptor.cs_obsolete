@@ -1,0 +1,68 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Assertions;
+
+public class ObjectDescriptor : MonoBehaviour
+{
+    [HideInInspector]
+    public ObjectType type;
+    public GameObject motherScene;
+    public string[] addressList;
+    public Item curItem;
+    public int level;
+
+    public static Item buildItem(string[] itemList, int level) {
+        Assert.AreNotEqual(itemList.Length, 0);
+        Item item = Data.globalItemMap[level][(string)itemList[0]];
+        for (int i = 1; i < itemList.Length; i ++) {
+            item = item.subItems[(string)itemList[i]];
+        }
+        return item;
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        // Debug.Log("Something");
+        curItem = buildItem(addressList, this.level);
+        //Assert.IsNull(curItem.gameObject);
+        // Assert.AreEqual(curItem.gameObject.Count, 0);
+        //curItem.gameObject = gameObject;
+        if (gameObject.GetComponent<SceneDescriptor>() != null) {
+            type = ObjectType.Scene;
+            // curItem.sceneObject = gameObject; // Done In Scene Descriptor
+        } else if (gameObject.GetComponent<SceneTriggerDescriptor>() != null) {
+            type = ObjectType.SceneTrigger;
+            // curItem.gameObject[motherScene] = gameObject;
+        } else {
+            type = ObjectType.Item;
+            // curItem.gameObject[motherScene] = gameObject;
+        }
+    }
+    
+    public void Discover() {
+
+        Debug.Log("Discovering: " + curItem.name);
+        if (Data.globalEvidenceMap[Data.curLevel][curItem.name] == null) {
+            return;
+        }
+        Data.discoveryController.Discover(gameObject, curItem.description);
+        // if (Data.obtainedItem[this.level].Contains(curItem)) {
+        //     return;
+        // }
+        // Data.obtainedItem[this.level].Add(curItem);
+        Debug.Log("Discover Item: " + curItem.name);
+        Data.uiData.cardController.AddCard(this.level, curItem.name);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        // if (Data.curItem == curItem && (gameObject.activeSelf == false)) {
+        //     gameObject.SetActive(true);
+        // } else if (Data.curItem != curItem && gameObject.activeSelf == true) {
+        //     gameObject.SetActive(false);
+        // }
+    }
+}

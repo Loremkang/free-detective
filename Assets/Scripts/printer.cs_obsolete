@@ -1,0 +1,39 @@
+using System;
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
+public static class Printer {
+    public static void printCurStatus() {
+        string[] position = Data.curPos.getPosChain();
+        Debug.Log("你现在位于：\t\t" + String.Join(" -> ", position));
+        Debug.Log(Data.curPos.description);
+    }
+    public static void printObject(Item item) {
+        Console.Write("[" + item.type + "]");
+        Debug.Log(item.name);
+        Debug.Log("\t\t" + item.description);
+    }
+    public static void printAllObject() {
+        Debug.Log("已有的证物：");
+        for (int i = 0; i < Data.obtainedItem.Count; i ++) {
+            Console.Write("\t" + "[" + i.ToString() + "] ");
+            printObject((Item)Data.obtainedItem[i]);
+        }
+    }
+    public static ArrayList printObjectsHere() {
+        ArrayList arrayList = new ArrayList();
+        Debug.Log("你获得了这些证物：");
+        int i = 0;
+        foreach (string name in Data.curPos.subItems.Keys) {
+            Item curItem = Data.curPos.subItems[name];
+            if (Data.hidden.Contains(curItem) || Data.substituted.Contains(curItem)) {
+                continue;
+            }
+            Console.Write("\t" + "[" + i++.ToString() + "] ");
+            printObject(curItem);
+            arrayList.Add(curItem);
+        }
+        return arrayList;
+    }
+}
